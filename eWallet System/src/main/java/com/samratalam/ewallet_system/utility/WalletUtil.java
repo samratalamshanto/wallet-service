@@ -10,6 +10,11 @@ public final class WalletUtil {
         return "wallet_" + String.format("%05d", userId);
     }
 
+    public static synchronized String getWalletLockName(String walletId) {
+        return "lock_key_" + walletId;
+    }
+
+
     public static synchronized boolean isRequestedAmountValid(WalletToBankTransferRequest request, WalletAccount walletAccount) {
         Double requestedAmount = request.getAmount();
 
@@ -26,7 +31,6 @@ public final class WalletUtil {
     public static Double convertedAmount(Double amount, String currency) {
         return 0.0; //todo: will implement the convertionRate for different currency
     }
-
 
 
     public static synchronized Double requestedAmountAfterConvertion(WalletToBankTransferRequest request, WalletAccount walletAccount) {

@@ -7,6 +7,8 @@ import com.samratalam.ewallet_system.entity.TransactionHistory;
 import com.samratalam.ewallet_system.entity.WalletAccount;
 import com.samratalam.ewallet_system.enums.CommonStatus;
 import com.samratalam.ewallet_system.exception.AlreadyProcessedTransaction;
+import com.samratalam.ewallet_system.exception.InvalidLockException;
+import com.samratalam.ewallet_system.redis.RedisLockManager;
 import com.samratalam.ewallet_system.repository.ApiRequestHistoryRepo;
 import com.samratalam.ewallet_system.repository.TransactionHistoryRepository;
 import com.samratalam.ewallet_system.repository.WalletAccountRepository;
@@ -16,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +27,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static com.samratalam.ewallet_system.utility.WalletUtil.isRequestedAmountValid;
@@ -34,15 +39,39 @@ public class WalletServiceImpl implements WalletService {
     private final WalletAccountRepository repository;
     private final ApiRequestHistoryRepo apiRequestHistoryRepo;
     private final TransactionHistoryRepository transactionHistoryRepository;
+    private final RedisLockManager redisLockManager;
 
     @Transactional
     @Override
     public void transferWalletToBank(WalletToBankTransferRequest request) {
-        WalletAccount walletAccount = validateRequest(request);
-        saveTransactionHistory(request);
-        CompletableFuture.runAsync(() -> bankServiceApiCall(request));
-        updateWallet(walletAccount, request);
-        saveRequestHistory(request);
+        String lockValue = UUID.randomUUID().toString();
+        String lockKeyName = WalletUtil.getWalletLockName(request.getWalletId());
+        try {
+            acquireDistributedLock(lockKeyName, lockValue);
+            WalletAccount walletAccount = validateRequest(request);
+            saveTransactionHistory(request);
+            CompletableFuture.runAsync(() -> bankServiceApiCall(request));
+            updateWallet(walletAccount, request);
+            saveRequestHistory(request);
+        } finally {
+            releaseDistributedLock(lockKeyName, lockValue);
+        }
+    }
+
+    private void releaseDistributedLock(String lockKeyName, String lockValue) {
+        redisLockManager.releaseLock(lockKeyName, lockValue);
+    }
+
+    @Retryable(
+            retryFor = InvalidLockException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
+    private void acquireDistributedLock(String lockKeyName, String lockValue) {
+        var returnedLock = redisLockManager.acquireLock(lockKeyName, lockValue);
+        if (returnedLock == null || !lockValue.equals(returnedLock)) {
+            throw new InvalidLockException("Cannot acquired the lock");
+        }
     }
 
     private void updateWallet(WalletAccount walletAccount, WalletToBankTransferRequest request) {
