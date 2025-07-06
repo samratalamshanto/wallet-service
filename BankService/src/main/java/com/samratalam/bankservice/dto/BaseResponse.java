@@ -1,6 +1,6 @@
 package com.samratalam.bankservice.dto;
 
-import com.samratalam.ewallet_system.enums.CommonStatus;
+import com.samratalam.bankservice.enums.CommonStatus;
 import lombok.Builder;
 import lombok.Data;
 

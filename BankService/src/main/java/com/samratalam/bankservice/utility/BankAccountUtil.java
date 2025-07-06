@@ -13,19 +13,6 @@ public final class BankAccountUtil {
         return "ref-" + LocalDateTime.now();
     }
 
-    public static synchronized boolean isRequestedAmountValid(WalletToBankTransferRequest request, WalletAccount walletAccount) {
-        Double requestedAmount = request.getAmount();
-
-        if (!walletAccount.getCurrency().equals(request.getCurrency())) {
-            requestedAmount = convertedAmount(request.getAmount(), walletAccount.getCurrency());
-        }
-
-        if (walletAccount.getBalance() < requestedAmount) {
-            throw new InsufficientAmountException(request.getAmount());
-        }
-        return true;
-    }
-
     public static Double convertedAmount(Double amount, String currency) {
         return 0.0; //todo: will implement the convertionRate for different currency
     }

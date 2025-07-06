@@ -1,6 +1,6 @@
 package com.samratalam.bankservice.exception.advice;
 
-import com.samratalam.ewallet_system.dto.BaseResponse;
+import com.samratalam.bankservice.dto.BaseResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

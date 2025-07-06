@@ -8,8 +8,9 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisRepository {
+
     @Autowired
-    RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     public void setKey(String key, Object value) {
         redisTemplate.opsForValue().set(key, value);
