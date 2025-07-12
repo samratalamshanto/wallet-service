@@ -1,5 +1,6 @@
 package com.samratalam.ewallet_system.dto;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,5 +20,6 @@ public class WalletToBankTransferCallBack {
     private String message;
     @NotEmpty
     private String referenceId;
+    @Future
     private LocalDateTime processAt;
 }
