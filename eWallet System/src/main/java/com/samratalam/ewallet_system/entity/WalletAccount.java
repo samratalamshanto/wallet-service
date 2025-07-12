@@ -4,8 +4,6 @@ import com.samratalam.ewallet_system.enums.WalletStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +23,11 @@ public class WalletAccount extends BaseEntity {
     )
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User walletUser;
+
+    @Access(AccessType.PROPERTY)
+    @Column(name = "user_id", insertable = false, updatable = false)
+    private Long walletUserId;
+
     private Double balance;
     private String currency;
     @Enumerated(EnumType.STRING)
