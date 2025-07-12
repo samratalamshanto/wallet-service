@@ -2,7 +2,10 @@ package com.samratalam.ewallet_system.entity;
 
 import com.samratalam.ewallet_system.custom.annotation.StrongPassword;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Past;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -21,6 +24,8 @@ public class User extends BaseEntity {
     private String email;
     private String phone;
     private String address;
+    @Past
+    private LocalDate birthday;
 
     @EqualsAndHashCode.Exclude
     @OneToOne(

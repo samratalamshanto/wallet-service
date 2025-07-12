@@ -2,6 +2,7 @@ package com.samratalam.ewallet_system.entity;
 
 import com.samratalam.ewallet_system.enums.CommonStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -25,5 +26,6 @@ public class TransactionHistory extends BaseEntity {
     private String status;
     private String message;
     private String referenceId;
+    @FutureOrPresent
     private LocalDateTime processedAt;
 }
